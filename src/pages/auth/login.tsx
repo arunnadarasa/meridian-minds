@@ -31,7 +31,7 @@ const Login = () => {
         // Check onboarding status
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('onboarding_complete, first_name')
+          .select('onboarding_complete')
           .eq('id', data.user.id)
           .maybeSingle();
 
@@ -45,8 +45,8 @@ const Login = () => {
           description: "Successfully logged in",
         });
 
-        // If profile is not found or onboarding is not complete, redirect to onboarding
-        if (!profileData?.first_name) {
+        // Redirect to onboarding if onboarding is not complete
+        if (!profileData?.onboarding_complete) {
           navigate("/onboarding");
         } else {
           navigate("/"); // Navigate to dashboard after login
