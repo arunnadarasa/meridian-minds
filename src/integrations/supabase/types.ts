@@ -174,6 +174,41 @@ export type Database = {
         }
         Relationships: []
       }
+      condition: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          severity_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          severity_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          severity_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condition_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       copd_indicators: {
         Row: {
           code: string
@@ -400,6 +435,57 @@ export type Database = {
           id?: string
           name?: string
           vtm_id?: string
+        }
+        Relationships: []
+      }
+      doctor: {
+        Row: {
+          address_line1: string
+          address_line2: string | null
+          city: string
+          country: string
+          created_at: string
+          email: string
+          f_name: string
+          id: string
+          l_name: string
+          phone: string | null
+          postal: string
+          state: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          address_line1: string
+          address_line2?: string | null
+          city: string
+          country: string
+          created_at?: string
+          email: string
+          f_name: string
+          id?: string
+          l_name: string
+          phone?: string | null
+          postal: string
+          state?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          email?: string
+          f_name?: string
+          id?: string
+          l_name?: string
+          phone?: string | null
+          postal?: string
+          state?: string | null
+          updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }
@@ -987,6 +1073,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy: {
+        Row: {
+          address_line1: string
+          address_line2: string | null
+          city: string
+          country: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          postal: string
+          state: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          address_line1: string
+          address_line2?: string | null
+          city: string
+          country: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          postal: string
+          state?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          postal?: string
+          state?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       practice_settings: {
         Row: {
           created_at: string | null
@@ -1010,6 +1144,76 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      prescription: {
+        Row: {
+          created_at: string
+          description: string | null
+          doctor_id: string
+          dosage: string
+          id: string
+          info: string | null
+          name: string
+          pharmacy_id: string | null
+          prescription_id: string
+          status: string | null
+          type: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          doctor_id: string
+          dosage: string
+          id?: string
+          info?: string | null
+          name: string
+          pharmacy_id?: string | null
+          prescription_id: string
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          doctor_id?: string
+          dosage?: string
+          id?: string
+          info?: string | null
+          name?: string
+          pharmacy_id?: string | null
+          prescription_id?: string
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1242,6 +1446,89 @@ export type Database = {
         }
         Relationships: []
       }
+      user_data: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          f_name: string
+          id: string
+          l_name: string
+          language: string | null
+          other_names: string | null
+          phone: string | null
+          postal: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          f_name: string
+          id?: string
+          l_name: string
+          language?: string | null
+          other_names?: string | null
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          f_name?: string
+          id?: string
+          l_name?: string
+          language?: string | null
+          other_names?: string | null
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_data_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1250,7 +1537,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_type: "patient" | "doctor" | "pharmacy"
     }
     CompositeTypes: {
       [_ in never]: never
