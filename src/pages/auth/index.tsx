@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,6 +16,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [userType, setUserType] = useState("patient");
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +35,11 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            user_type: userType,
+          }
+        }
       });
 
       if (error) throw error;
@@ -42,7 +49,6 @@ const Auth = () => {
           title: "Success!",
           description: "Please check your email to confirm your account",
         });
-        // Navigate to onboarding page after email confirmation
         navigate("/onboarding");
       }
     } catch (error) {
@@ -102,6 +108,21 @@ const Auth = () => {
                 className="w-full"
                 placeholder="Confirm your password"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="userType">I am a</Label>
+              <Select defaultValue={userType} onValueChange={setUserType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select user type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="patient">Patient</SelectItem>
+                    <SelectItem value="doctor">Doctor</SelectItem>
+                    <SelectItem value="pharmacy">Pharmacy</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <Button
               type="submit"
