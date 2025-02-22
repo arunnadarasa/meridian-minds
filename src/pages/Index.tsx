@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PlusCircle, FileText, PenLine, Bell, MessageCircle, User } from "lucide-react";
+import { PlusCircle, FileText, PenLine, Bell, MessageCircle, User, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Prescription {
   id: string;
@@ -20,6 +21,7 @@ interface Prescription {
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [userType, setUserType] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -30,42 +32,45 @@ const Index = () => {
     const fetchUserData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('user_type, preferred_name')
-            .eq('id', user.id)
-            .single();
+        if (!user) {
+          navigate("/auth");
+          return;
+        }
 
-          if (profileError) {
-            console.error('Error fetching profile:', profileError);
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Failed to fetch user profile",
-            });
-            return;
-          }
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('user_type, preferred_name')
+          .eq('id', user.id)
+          .single();
 
-          setUserId(user.id);
-          setUserType(profileData?.user_type || null);
-          setUserName(profileData?.preferred_name || user.email?.split('@')[0] || "User");
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch user profile",
+          });
+          return;
+        }
 
-          let query = supabase.from('prescriptions').select('*');
-          if (profileData?.user_type === 'patient') {
-            query = query.eq('user_id', user.id);
-          }
+        setUserId(user.id);
+        setUserType(profileData?.user_type || null);
+        setUserName(profileData?.preferred_name || user.email?.split('@')[0] || "User");
 
-          const { data: prescriptionData, error } = await query;
-          if (error) {
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Failed to fetch prescriptions",
-            });
-          } else {
-            setPrescriptions(prescriptionData || []);
-          }
+        let query = supabase.from('prescriptions').select('*');
+        if (profileData?.user_type === 'patient') {
+          query = query.eq('user_id', user.id);
+        }
+
+        const { data: prescriptionData, error } = await query;
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch prescriptions",
+          });
+        } else {
+          setPrescriptions(prescriptionData || []);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -80,7 +85,38 @@ const Index = () => {
     };
 
     fetchUserData();
-  }, [toast]);
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        navigate('/auth');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [toast, navigate]);
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -105,6 +141,14 @@ const Index = () => {
             </Button>
             <Button variant="ghost" size="icon">
               <User className="h-5 w-5 text-gray-600" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleSignOut}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="h-5 w-5" />
             </Button>
           </div>
         </div>
