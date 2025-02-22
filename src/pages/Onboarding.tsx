@@ -50,14 +50,14 @@ const Onboarding = () => {
       }
       setUserId(user.id);
       
-      // Check if user has already completed onboarding
+      // Check if user has already completed profile
       const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('first_name')
         .eq('id', user.id)
         .single();
 
-      if (profile?.onboarding_completed) {
+      if (profile?.first_name) {
         navigate("/");
         return;
       }
@@ -116,7 +116,7 @@ const Onboarding = () => {
         .from('profiles')
         .update({
           ...userData,
-          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', userId);
 
