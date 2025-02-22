@@ -28,11 +28,29 @@ const Login = () => {
       if (error) throw error;
 
       if (data?.user) {
+        // Check onboarding status
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('onboarding_complete, first_name')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          throw profileError;
+        }
+
         toast({
           title: "Welcome back!",
           description: "Successfully logged in",
         });
-        navigate("/"); // Navigate to dashboard after login
+
+        // If profile is not found or onboarding is not complete, redirect to onboarding
+        if (!profileData?.first_name) {
+          navigate("/onboarding");
+        } else {
+          navigate("/"); // Navigate to dashboard after login
+        }
       }
     } catch (error) {
       console.error("Error logging in:", error);
