@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,14 +16,6 @@ interface Prescription {
   description?: string;
   info?: string;
   created_at: string;
-}
-
-// Add type declarations for the Web Speech API
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-    SpeechRecognition: any;
-  }
 }
 
 const Index = () => {
@@ -119,7 +110,9 @@ const Index = () => {
 
   const startVoiceInput = async () => {
     try {
-      const recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
       recognition.continuous = false;
       recognition.interimResults = false;
 
@@ -127,13 +120,13 @@ const Index = () => {
         setIsListening(true);
       };
 
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         setMessage(transcript);
         setIsListening(false);
       };
 
-      recognition.onerror = (event) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
         toast({
