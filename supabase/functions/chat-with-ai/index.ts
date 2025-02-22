@@ -15,15 +15,8 @@ serve(async (req) => {
   try {
     const { message, userType } = await req.json();
 
-    // Different system prompts based on user type
-    const systemPrompts = {
-      patient: "You are a helpful medical assistant. Provide clear, patient-friendly information about medications and general health advice. Never provide medical diagnosis or prescriptions.",
-      doctor: "You are a medical knowledge assistant. Help with medical terminology, drug interactions, and treatment guidelines. Cite medical sources when possible.",
-      pharmacy: "You are a pharmacy assistant. Help with medication information, dosing guidelines, and drug interactions. Provide accurate pharmaceutical information.",
-    };
-
     // Get AI response from ElevenLabs
-    const response = await fetch('https://api.elevenlabs.io/v1/chat', {
+    const response = await fetch('https://api.elevenlabs.io/v1/chat/agent-with-voice', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,17 +24,9 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         text: message,
-        character_id: "medical_assistant",
-        history: {
-          messages: [
-            {
-              role: "system",
-              content: systemPrompts[userType as keyof typeof systemPrompts]
-            }
-          ]
-        },
+        agent_id: "dmZEiM3CTt7Mz30oB9pm",
         voice_id: "EXAVITQu4vr4xnSDxMaL", // Using Sarah's voice
-        model_id: "eleven_multilingual_v2",
+        output_format: "mp3_url",
       }),
     });
 

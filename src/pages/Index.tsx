@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,14 @@ interface Prescription {
   description?: string;
   info?: string;
   created_at: string;
+}
+
+// Add type declarations for the Web Speech API
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any;
+  }
 }
 
 const Index = () => {
@@ -90,8 +99,8 @@ const Index = () => {
 
       setChatMessages(prev => [...prev, { role: 'assistant', content: data.response.text }]);
       
-      if (data.response.audio) {
-        const audio = new Audio(`data:audio/mp3;base64,${data.response.audio}`);
+      if (data.response.audio_url) {
+        const audio = new Audio(data.response.audio_url);
         audioRef.current = audio;
         audio.play();
         setIsPlaying(true);
