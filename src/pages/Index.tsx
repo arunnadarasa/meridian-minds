@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,40 +35,58 @@ const Index = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('user_type')
-          .eq('id', user.id)
-          .single();
-        
-        setUserId(user.id);
-        setUserType(userData?.user_type || null);
-        
-        let query = supabase.from('prescription').select('*');
-        
-        if (userData?.user_type === 'patient') {
-          query = query.eq('user_id', user.id);
-        } else if (userData?.user_type === 'doctor') {
-          query = query.eq('doctor_id', user.id);
-        } else if (userData?.user_type === 'pharmacy') {
-          query = query.eq('pharmacy_id', user.id);
-        }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('id', user.id)
+            .single();
 
-        const { data: prescriptionData, error } = await query;
-        
-        if (error) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to fetch prescriptions",
-          });
-        } else {
-          setPrescriptions(prescriptionData || []);
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to fetch user profile",
+            });
+            return;
+          }
+
+          setUserId(user.id);
+          setUserType(profileData?.user_type || null);
+
+          let query = supabase.from('prescriptions').select('*');
+          if (profileData?.user_type === 'patient') {
+            query = query.eq('user_id', user.id);
+          } else if (profileData?.user_type === 'doctor') {
+            query = query.eq('doctor_id', user.id);
+          } else if (profileData?.user_type === 'pharmacy') {
+            query = query.eq('pharmacy_id', user.id);
+          }
+
+          const { data: prescriptionData, error } = await query;
+          if (error) {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to fetch prescriptions",
+            });
+          } else {
+            setPrescriptions(prescriptionData || []);
+          }
         }
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch user data",
+        });
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchUserData();
