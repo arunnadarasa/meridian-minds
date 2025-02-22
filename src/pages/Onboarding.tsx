@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -50,34 +49,46 @@ const Onboarding = () => {
       }
       setUserId(user.id);
       
-      // Check if user has already completed profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name')
-        .eq('id', user.id)
-        .single();
+      try {
+        // Check if user has already completed profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, date_of_birth, phone_number')
+          .eq('id', user.id)
+          .maybeSingle();
 
-      if (profile?.first_name) {
-        navigate("/");
-        return;
+        if (profileError) throw profileError;
+
+        if (profileData?.first_name) {
+          navigate("/");
+          return;
+        }
+
+        // Fetch prescription data if it exists
+        const { data: prescriptionData } = await supabase
+          .from('prescriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (prescriptionData) {
+          setPrescription(prescriptionData);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch profile data",
+        });
+        navigate("/auth");
       }
-
-      // Fetch prescription data if it exists
-      const { data: prescriptionData } = await supabase
-        .from('prescriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (prescriptionData) {
-        setPrescription(prescriptionData);
-      }
-
-      setLoading(false);
     };
 
     checkSession();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handlePrescriptionConfirm = async () => {
     if (!userId) return;
