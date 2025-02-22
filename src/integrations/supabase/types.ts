@@ -9,75 +9,255 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      prescriptions: {
+      conditions: {
         Row: {
           created_at: string
-          description: string | null
-          dosage: string
           id: string
           name: string
-          prescription_id: string
-          status: string | null
+          severity_type: Database["public"]["Enums"]["severity_type"]
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          description?: string | null
-          dosage: string
           id?: string
           name: string
-          prescription_id: string
-          status?: string | null
+          severity_type?: Database["public"]["Enums"]["severity_type"]
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          description?: string | null
-          dosage?: string
           id?: string
           name?: string
-          prescription_id?: string
-          status?: string | null
+          severity_type?: Database["public"]["Enums"]["severity_type"]
           updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
-      profiles: {
+      doctors: {
+        Row: {
+          address_line_1: string | null
+          address_line_2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          email: string
+          f_name: string
+          id: string
+          l_name: string
+          phone: string | null
+          postal: string | null
+          state: string | null
+          updated_at: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          f_name: string
+          id?: string
+          l_name: string
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          f_name?: string
+          id?: string
+          l_name?: string
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      pharmacies: {
+        Row: {
+          address_line_1: string | null
+          address_line_2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          postal: string | null
+          state: string | null
+          updated_at: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      prescriptions: {
         Row: {
           created_at: string
-          date_of_birth: string | null
-          first_name: string | null
+          description: string | null
+          doctor_id: string
+          dosage: string
           id: string
-          last_name: string | null
-          onboarding_complete: boolean | null
-          phone_number: string | null
+          info: string | null
+          name: string
+          pharmacy_id: string | null
+          prescription_id: string
+          status: Database["public"]["Enums"]["prescription_status"]
+          type: string | null
           updated_at: string
-          user_type: Database["public"]["Enums"]["user_type"] | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
-          date_of_birth?: string | null
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          onboarding_complete?: boolean | null
-          phone_number?: string | null
+          description?: string | null
+          doctor_id: string
+          dosage: string
+          id?: string
+          info?: string | null
+          name: string
+          pharmacy_id?: string | null
+          prescription_id: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+          type?: string | null
           updated_at?: string
-          user_type?: Database["public"]["Enums"]["user_type"] | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
-          date_of_birth?: string | null
-          first_name?: string | null
+          description?: string | null
+          doctor_id?: string
+          dosage?: string
           id?: string
-          last_name?: string | null
-          onboarding_complete?: boolean | null
-          phone_number?: string | null
+          info?: string | null
+          name?: string
+          pharmacy_id?: string | null
+          prescription_id?: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+          type?: string | null
           updated_at?: string
-          user_type?: Database["public"]["Enums"]["user_type"] | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_data: {
+        Row: {
+          address_line_1: string | null
+          address_line_2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          f_name: string | null
+          id: string
+          l_name: string | null
+          language: string | null
+          other_names: string | null
+          phone: string | null
+          postal: string | null
+          state: string | null
+          updated_at: string
+          user_id: string | null
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          f_name?: string | null
+          id?: string
+          l_name?: string | null
+          language?: string | null
+          other_names?: string | null
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          f_name?: string | null
+          id?: string
+          l_name?: string | null
+          language?: string | null
+          other_names?: string | null
+          phone?: string | null
+          postal?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
         }
         Relationships: []
       }
@@ -89,6 +269,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      prescription_status:
+        | "To Be Dispensed"
+        | "With Dispenser"
+        | "Dispensed"
+        | "Claimed"
+      severity_type: "Low" | "Medium" | "High" | "Critical"
       user_type: "patient" | "doctor" | "pharmacy"
     }
     CompositeTypes: {

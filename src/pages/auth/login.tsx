@@ -28,16 +28,16 @@ const Login = () => {
       if (error) throw error;
 
       if (data?.user) {
-        // Check onboarding status
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
+        // Check user data completion status
+        const { data: userData, error: userDataError } = await supabase
+          .from('user_data')
+          .select('f_name, l_name, phone')
+          .eq('user_id', data.user.id)
           .maybeSingle();
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          throw profileError;
+        if (userDataError) {
+          console.error('Error fetching user data:', userDataError);
+          throw userDataError;
         }
 
         toast({
@@ -45,8 +45,8 @@ const Login = () => {
           description: "Successfully logged in",
         });
 
-        // Redirect to onboarding if profile is not complete
-        if (!profileData || !profileData.onboarding_complete) {
+        // Redirect to onboarding if profile is incomplete
+        if (!userData || !userData.f_name || !userData.l_name || !userData.phone) {
           navigate("/onboarding");
         } else {
           navigate("/"); // Navigate to dashboard after login
