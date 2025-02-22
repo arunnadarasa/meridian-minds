@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PlusCircle, FileText, PenLine, Send, Bot } from "lucide-react";
+import { PlusCircle, FileText, PenLine, Send, Bot, Mic, Volume2 } from "lucide-react";
 
 interface Prescription {
   id: string;
@@ -28,6 +28,9 @@ const Index = () => {
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -85,7 +88,15 @@ const Index = () => {
 
       if (error) throw error;
 
-      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response.text }]);
+      
+      if (data.response.audio) {
+        const audio = new Audio(`data:audio/mp3;base64,${data.response.audio}`);
+        audioRef.current = audio;
+        audio.play();
+        setIsPlaying(true);
+        audio.onended = () => setIsPlaying(false);
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -94,6 +105,55 @@ const Index = () => {
       });
     } finally {
       setIsAiTyping(false);
+    }
+  };
+
+  const startVoiceInput = async () => {
+    try {
+      const recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setMessage(transcript);
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to recognize speech. Please try again.",
+        });
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error('Speech recognition error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Speech recognition is not supported in your browser.",
+      });
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
     }
   };
 
@@ -242,9 +302,26 @@ const Index = () => {
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={startVoiceInput}
+                  disabled={isListening}
+                >
+                  <Mic className={`h-4 w-4 ${isListening ? 'text-red-500' : ''}`} />
+                </Button>
                 <Button onClick={handleSendMessage} disabled={!message.trim() || isAiTyping}>
                   <Send className="h-4 w-4" />
                 </Button>
+                {isPlaying && (
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={stopAudio}
+                  >
+                    <Volume2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>

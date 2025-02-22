@@ -1,6 +1,6 @@
 
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,28 +22,41 @@ serve(async (req) => {
       pharmacy: "You are a pharmacy assistant. Help with medication information, dosing guidelines, and drug interactions. Provide accurate pharmaceutical information.",
     };
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Get AI response from ElevenLabs
+    const response = await fetch('https://api.elevenlabs.io/v1/chat', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
+        'xi-api-key': Deno.env.get('ELEVENLABS_API_KEY') || '',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompts[userType as keyof typeof systemPrompts] },
-          { role: 'user', content: message }
-        ],
+        text: message,
+        character_id: "medical_assistant",
+        history: {
+          messages: [
+            {
+              role: "system",
+              content: systemPrompts[userType as keyof typeof systemPrompts]
+            }
+          ]
+        },
+        voice_id: "EXAVITQu4vr4xnSDxMaL", // Using Sarah's voice
+        model_id: "eleven_multilingual_v2",
       }),
     });
 
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.statusText}`);
+    }
 
-    return new Response(JSON.stringify({ response: aiResponse }), {
+    const data = await response.json();
+    console.log("ElevenLabs response:", data);
+
+    return new Response(JSON.stringify({ response: data }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    console.error("Error in chat function:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
