@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PlusCircle, FileText, PenLine } from "lucide-react";
+import { PlusCircle, FileText, PenLine, Send, Bot } from "lucide-react";
 
 interface Prescription {
   id: string;
@@ -25,6 +24,10 @@ const Index = () => {
   const [userType, setUserType] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
+  const [isAiTyping, setIsAiTyping] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -39,7 +42,6 @@ const Index = () => {
         setUserId(user.id);
         setUserType(userData?.user_type || null);
         
-        // Fetch prescriptions based on user type
         let query = supabase.from('prescription').select('*');
         
         if (userData?.user_type === 'patient') {
@@ -67,6 +69,33 @@ const Index = () => {
 
     fetchUserData();
   }, [toast]);
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !userType) return;
+
+    const userMessage = message;
+    setMessage("");
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsAiTyping(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: { message: userMessage, userType },
+      });
+
+      if (error) throw error;
+
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+      });
+    } finally {
+      setIsAiTyping(false);
+    }
+  };
 
   const renderPatientView = () => (
     <div className="space-y-4">
@@ -169,6 +198,61 @@ const Index = () => {
     </div>
   );
 
+  const renderChat = () => (
+    <div className={`fixed bottom-4 right-4 w-96 transition-all duration-300 ${isChatOpen ? 'translate-y-0' : 'translate-y-[calc(100%-3.5rem)]'}`}>
+      <Card className="shadow-xl">
+        <CardHeader className="cursor-pointer" onClick={() => setIsChatOpen(!isChatOpen)}>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            Medical Assistant
+          </CardTitle>
+        </CardHeader>
+        {isChatOpen && (
+          <CardContent>
+            <div className="h-96 flex flex-col">
+              <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+                {chatMessages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                        msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {isAiTyping && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-lg px-4 py-2 bg-muted">
+                      Typing...
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ask a question..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                />
+                <Button onClick={handleSendMessage} disabled={!message.trim() || isAiTyping}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -182,6 +266,7 @@ const Index = () => {
       {userType === 'patient' && renderPatientView()}
       {userType === 'doctor' && renderDoctorView()}
       {userType === 'pharmacy' && renderPharmacyView()}
+      {renderChat()}
     </div>
   );
 };
