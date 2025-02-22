@@ -23,7 +23,6 @@ const Index = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [userType, setUserType] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -39,7 +38,7 @@ const Index = () => {
 
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('user_type, preferred_name')
+          .select('preferred_name')
           .eq('id', user.id)
           .single();
 
@@ -54,15 +53,14 @@ const Index = () => {
         }
 
         setUserId(user.id);
-        setUserType(profileData?.user_type || null);
         setUserName(profileData?.preferred_name || user.email?.split('@')[0] || "User");
 
-        let query = supabase.from('prescriptions').select('*');
-        if (profileData?.user_type === 'patient') {
-          query = query.eq('user_id', user.id);
-        }
+        // Fetch prescriptions for the user
+        const { data: prescriptionData, error } = await supabase
+          .from('prescriptions')
+          .select('*')
+          .eq('user_id', user.id);
 
-        const { data: prescriptionData, error } = await query;
         if (error) {
           toast({
             variant: "destructive",
@@ -208,3 +206,4 @@ const Index = () => {
 };
 
 export default Index;
+
