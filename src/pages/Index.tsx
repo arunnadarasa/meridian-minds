@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, MessageSquare, User, Mic } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Conversation } from "@11labs/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +14,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-declare namespace JSX {
-  interface IntrinsicElements {
-    'elevenlabs-convai': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
-      'agent-id': string;
-    }, HTMLElement>;
+const clientTools = {
+  getCustomerDetails: async () => {
+    // Fetch customer details (e.g., from an API)
+    const customerData = {
+      id: 123,
+      name: "Alice",
+      subscription: "Pro"
+    };
+    // Return data directly to the agent.
+    return customerData;
   }
-}
+};
+
+// UNCOMMENT THIS TO HAVE THE WORKING CONVERSATION
+// Start the conversation with client tools configured.
+//const conversation = await Conversation.startSession({ 
+//  agentId: '8pkVgwjpCRqjsfbGte5P',
+//  clientTools
+//});
 
 const Index = () => {
   const navigate = useNavigate();
