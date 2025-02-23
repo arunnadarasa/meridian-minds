@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,24 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        toast({
+          title: "Already logged in",
+          description: "Redirecting to dashboard"
+        });
+        navigate("/");
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +64,7 @@ const Login = () => {
 
         // Redirect to onboarding if profile is incomplete
         if (!userData || !userData.f_name || !userData.l_name || !userData.phone) {
-          navigate("/onboarding");
+          navigate("/");
         } else {
           navigate("/"); // Navigate to dashboard after login
         }

@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface UserData {
   first_name: string;
@@ -44,7 +51,12 @@ const Onboarding = () => {
     const checkSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        navigate("/auth");
+        navigate("/auth/login"); // Changed from "/auth" to "/auth/login"
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "Please log in to continue"
+        });
         return;
       }
       setUserId(user.id);
@@ -99,7 +111,7 @@ const Onboarding = () => {
         .upsert({
           user_id: userId,
           ...prescription,
-          status: 'Active'
+          status: 'Dispensed'
         });
 
       if (error) throw error;
@@ -148,6 +160,23 @@ const Onboarding = () => {
     }
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error logging out",
+        description: error.message,
+      });
+      return;
+    }
+    toast({
+      title: "Logged out successfully",
+      description: "See you soon!",
+    });
+    navigate("/auth/login");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -158,6 +187,24 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F7FD] py-12">
+      <div className="fixed top-4 right-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>
+                  {userData.first_name?.[0]?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleLogout}>
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <div className="container max-w-2xl mx-auto px-4">
         <Card className="bg-white shadow-lg">
           <CardHeader>

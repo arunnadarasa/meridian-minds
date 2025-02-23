@@ -1,15 +1,29 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, MessageSquare, User, Mic } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+declare namespace JSX {
+  interface IntrinsicElements {
+    'elevenlabs-convai': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
+      'agent-id': string;
+    }, HTMLElement>;
+  }
+}
 
 const Index = () => {
-  const [userName, setUserName] = useState("Mark");
-  const [userInput, setUserInput] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [prescriptions, setPrescriptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,12 +44,38 @@ const Index = () => {
       }
     };
 
-    fetchPrescriptions();
-  }, []);
+    const checkSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth/login");
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "Please log in to continue"
+        });
+        return;
+      }
+    };
 
-  const handleVoiceInput = () => {
-    // Voice input functionality will be implemented later
-    console.log("Voice input clicked");
+    checkSession();
+    fetchPrescriptions();
+  }, [navigate, toast]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error logging out",
+        description: error.message
+      });
+      return;
+    }
+    toast({
+      title: "Logged out successfully",
+      description: "See you soon!"
+    });
+    navigate("/auth/login");
   };
 
   return (
@@ -49,14 +89,25 @@ const Index = () => {
           <button className="p-2 hover:bg-medical-100 rounded-full transition-colors">
             <MessageSquare className="w-6 h-6 text-medical-600" />
           </button>
-          <button className="p-2 hover:bg-medical-100 rounded-full transition-colors">
-            <User className="w-6 h-6 text-medical-600" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 hover:bg-medical-100 rounded-full transition-colors">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>U</AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleLogout}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </nav>
 
       <main className="container pt-24 pb-16 animate-fade-in">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           {/* Left Column - Prescriptions and Notifications */}
           <div className="space-y-6">
             {/* Prescriptions Carousel */}
@@ -104,43 +155,9 @@ const Index = () => {
               </Tabs>
             </Card>
           </div>
-
-          {/* Right Column - Chat Interface */}
-          <div className="space-y-6">
-            {/* Input Area */}
-            <Card className="glass-morphism p-6">
-              <div className="flex items-center gap-4">
-                <Input
-                  placeholder={`Hello... ${userName}.. type here or talk`}
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleVoiceInput}
-                  className="rounded-full"
-                >
-                  <Mic className="h-5 w-5" />
-                </Button>
-              </div>
-            </Card>
-
-            {/* Output Area */}
-            <Card className="glass-morphism p-6 min-h-[400px]">
-              <h2 className="text-2xl font-bold mb-4 text-center">OUTPUT HERE</h2>
-              <div className="flex items-center justify-center h-64">
-                <img 
-                  src="/lovable-uploads/cdf15c5b-5bef-4bad-a743-88c20f9a492f.png" 
-                  alt="Meridian Minds Logo" 
-                  className="max-w-[200px] opacity-50"
-                />
-              </div>
-            </Card>
-          </div>
         </div>
       </main>
+      <elevenlabs-convai agent-id="8pkVgwjpCRqjsfbGte5P"></elevenlabs-convai>
     </div>
   );
 };
