@@ -92,7 +92,7 @@ const Index = () => {
                 </TabsList>
                 <TabsContent value="pickups" className="mt-4">
                   <div className="space-y-2">
-                    <p className="font-medium">Feb 29th - Prescription</p>
+                    <p className="font-medium">Feb 28th - Prescription</p>
                     <p className="text-medical-600">Ready for pickup</p>
                   </div>
                 </TabsContent>
